@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Icon Water Sewer Grade</title>
+    <meta
+      name="description"
+      content="Minimum and maximum gravity sewer grades for Icon Water in the ACT. Tick the precincts upstream of a pipe and read the grade for each diameter, to STD-SPE-G-011."
+    />
+    <link rel="canonical" href="https://chice.pages.dev/IconWaterSewerPipeGrade/" />
+    <meta property="og:title" content="Icon Water Sewer Grade" />
+    <meta
+      property="og:description"
+      content="Minimum and maximum gravity sewer grades for Icon Water in the ACT, from the precincts upstream of the pipe."
+    />
+    <meta property="og:url" content="https://chice.pages.dev/IconWaterSewerPipeGrade/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="chice" />
+    <meta property="og:image" content="https://chice.pages.dev/IconWaterSewerPipeGrade/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Icon Water sewer pipe grade" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Icon Water Sewer Grade" />
+    <meta
+      name="twitter:description"
+      content="Minimum and maximum gravity sewer grades for Icon Water in the ACT, from the precincts upstream of the pipe."
+    />
+    <meta name="twitter:image" content="https://chice.pages.dev/IconWaterSewerPipeGrade/og.png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/app.css?v=1" />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <h1>Icon Water Sewer Grade</h1>
+        <p>ACT only · STD-SPE-G-011 Version 5 · not a substitute for the signed design</p>
+        <p class="job-status" id="job_status" aria-live="polite"></p>
+      </div>
+      <div class="top-actions">
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false">Dark</button>
+        <button type="button" id="save_job" title="Download a JSON job file you can Load later">Save job</button>
+        <button type="button" id="load_job" title="Open a previously saved .sewer.json job file">Load job</button>
+        <input id="load_job_file" type="file" accept=".json,.sewer.json,application/json" hidden />
+        <button type="button" id="reset">Reset example</button>
+        <button type="button" id="print">Print / PDF</button>
+      </div>
+    </header>
+    <nav>
+      <button type="button" class="active" data-tab="tab-calc">Calculator</button>
+      <button type="button" data-tab="tab-method">Method</button>
+      <button type="button" data-tab="tab-sources">Sources</button>
+    </nav>
+    <main>
+      <section id="tab-calc" class="active">
+        <div class="layout">
+          <form id="inputs" class="card" autocomplete="off">
+            <h2>This pipe</h2>
+            <p class="help">Tick every precinct upstream of the pipe you are grading. Yellow is this job. Lilac is a coefficient from the supplement — leave it unless Icon has told you otherwise.</p>
+            <div class="grid">
+              <label class="span2">Job <input id="job" /></label>
+              <label>Designer <input id="designer" /></label>
+              <label>Date <input id="date" type="date" /></label>
+              <label>Pipe material
+                <select id="material" class="leave"></select>
+              </label>
+              <label>1-hour rain, 39.35% AEP (mm/h)
+                <input id="i_hour" class="leave" type="number" step="0.1" />
+              </label>
+              <label>Portion of pipes below groundwater
+                <input id="portion_wet" class="leave" type="number" step="0.05" min="0" max="1" />
+              </label>
+              <label>Pumped flow into this pipe, TPF (L/s)
+                <input id="tpf" class="leave" type="number" step="0.1" min="0" />
+              </label>
+              <label>DN150 house count
+                <input id="houses" type="number" min="0" step="1" />
+              </label>
+              <label>Solve for
+                <select id="solve">
+                  <option value="grade">Grade — from this flow and a DN</option>
+                  <option value="flow">Flow — from a grade and a DN</option>
+                  <option value="diameter">Diameter — smallest pipe for a grade you can build</option>
+                </select>
+              </label>
+              <label>DN
+                <select id="dn"></select>
+              </label>
+              <label>Grade you have (%)
+                <input id="grade_in" type="number" step="0.01" min="0" />
+              </label>
+            </div>
+            <h2 style="margin-top:1.1rem">Precincts</h2>
+            <p class="help">Each row is a branch. The design flow is worked out once, on the ticked rows together. Adding the branch peaks would overstate the trunk, because the peaking factor falls as the catchment grows.</p>
+            <table class="precincts">
+              <thead>
+                <tr>
+                  <th>Up</th>
+                  <th>#</th>
+                  <th>Dwellings</th>
+                  <th>NSA (ha)</th>
+                  <th>dw/ha</th>
+                  <th>EP/dw</th>
+                  <th>EP</th>
+                  <th>PDWF</th>
+                  <th>PWWF</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="precinct_body"></tbody>
+            </table>
+            <div class="row-actions">
+              <button type="button" id="add_precinct" class="ghost">Add precinct</button>
+            </div>
+          </form>
+          <div class="sticky stack">
+            <div class="card issued">
+              <p class="jobline" id="job_line"></p>
+              <span>Minimum grade</span>
+              <strong id="issued_grade">—</strong>
+              <p class="caption" id="issued_sub"></p>
+              <div class="chips">
+                <span class="chip" id="chip_pdwf"></span>
+                <span class="chip" id="chip_pwwf"></span>
+                <span class="chip" id="chip_ep"></span>
+                <span class="chip" id="chip_status"></span>
+              </div>
+            </div>
+            <div class="card">
+              <h2>Answer</h2>
+              <p class="issued" style="padding:0"><strong id="answer" style="font-size:1.6rem">—</strong></p>
+              <p class="caption" id="answer_note"></p>
+            </div>
+            <div class="card">
+              <svg id="svg-pipe" viewBox="0 0 360 310" role="img" aria-label="Part-full circular pipe"></svg>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <h2>Catchment upstream of this pipe</h2>
+          <div id="catchment"></div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <h2>Grade by diameter</h2>
+          <table class="results">
+            <thead>
+              <tr>
+                <th>DN</th>
+                <th class="num">Min %</th>
+                <th class="num">Min</th>
+                <th>Governs</th>
+                <th class="num">Slime %</th>
+                <th class="num">Self-clean %</th>
+                <th class="num">Absolute %</th>
+                <th class="num">Max %</th>
+                <th class="num">Full at min (L/s)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="results"></tbody>
+          </table>
+          <p class="caption">Minimum grade is the steeper of slime control, self-cleansing and the absolute minimum. Maximum grade is 3 m/s at peak dry-weather flow. Capacity uses the wet-weather design flow at the minimum grade. DN150 ignores the shear equations and uses the house table.</p>
+        </div>
+      </section>
+
+      <section id="tab-method">
+        <div class="card prose">
+          <h2>How a pipe is graded</h2>
+          <p>Enter each branch of the subdivision as a precinct: dwellings and net site area. Equivalent population per dwelling comes from the density, Table IW.1. Tick the branches that drain to the pipe you are designing. The tool adds their area and their population, then applies the peaking factor once.</p>
+          <p>Peak dry-weather flow is 5.83 times the average dry-weather flow, divided by total EP to the power 0.1. Average flow is 180 litres per EP per day. Groundwater is 0.01875 litres per second per hectare times the portion of the network below the water table (default 0.75). Rainfall inflow is 0.028 times the effective area times 1.2 times the rainfall intensity. Intensity is the Bureau of Meteorology one-hour depth at 39.35% annual exceedance probability, times (40 / area) to the power 0.12, times 1.5. The 21.4 mm/h default is the original spreadsheet figure; replace it with the Bureau figure for the site.</p>
+          <p>The wet-weather sum of those three is the design flow. The pipe must carry it without surcharge. The minimum grade is not based on that wet-weather flow. It is based on Qdmp, three quarters of peak dry-weather flow plus two thirds of any pumped inflow.</p>
+          <p>At that flow the hydraulic radius Rp fixes both grades: self-cleansing is 0.0135 / Rp, and sulphide slime control is 0.0338 / Rp, both in percent. Above DN150 the grade must be steeper than both, and also steeper than 80 divided by the internal diameter in millimetres. DN150 uses a table by the number of houses, from 1.25% for one house down to 0.70% at 35 houses. The maximum grade is the slope at which the dry-weather peak runs at 3 metres per second.</p>
+          <p>If you already know the depth, both grades are direct: radius from the depth, then the constant divided by that radius. The tool only iterates when the flow is known and the depth is not. Solve for Grade, Flow or Diameter at the top of the calculator. Flow asks what catchment would make your grade exactly the slime-control grade. Diameter asks for the smallest pipe whose minimum grade is no steeper than the grade you can build, and which can still carry the design flow.</p>
+        </div>
+      </section>
+
+      <section id="tab-sources">
+        <div class="card prose">
+          <h2>Sources</h2>
+          <p>Icon Water STD-SPE-G-011, Supplement to WSA 02-2014-3.3, Version 5, 8 October 2025. The grade equations are IW.5.5.3.1 to IW.5.5.3.4 and IW.5.5.4. Flows are Section IW.3. Roughness is Table IW.3. Population is Table IW.1. The DN150 grades are Table IW.4.</p>
+          <p>The supplement replaces the WSA 02 flow chapter and the pipe sizing and grading chapter. The base WSA 02 code and the hydrogen sulphide manuals are not required to run this calculator. They are required for the clauses Icon did not rewrite, and for junctions of sewers larger than DN300.</p>
+          <p><a href="https://www.iconwater.com.au/Developers-and-Renovators/Water-and-Sewerage-Service-Standards-and-Guidelines/New-Icon-Water-water-supply-and-sewerage-standards">Icon Water standards page</a>, where STD-SPE-G-011 is published.</p>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="js/app.js?v=1"></script>
+    <script src="js/theme.js?v=1"></script>
+  </body>
+</html>
