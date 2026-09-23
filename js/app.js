@@ -2,10 +2,10 @@ import {
   MATERIALS,
   combine,
   exampleJob,
+  diametersForGrade,
   flowAtGrade,
   fmt,
   grades,
-  smallestDiameter,
 } from "./engine.js";
 
 const STORE = "icon-sewer-job";
@@ -130,18 +130,14 @@ function render(job) {
     tr.querySelector("[data-out=pwwf]").textContent = fmt(row.pwwf, 2);
   });
 
-  const advised = smallestDiameter(rows, 1e9, flow.pwwf);
   $("job_line").textContent = [job.job, job.designer, job.date].filter(Boolean).join(" · ") || "Untitled job";
-  $("issued_grade").textContent = advised ? `DN ${advised.dn}` : "—";
-  $("issued_sub").textContent = advised
-    ? `${fmt(advised.smin, 2)}% minimum (${advised.criterion}), ${advised.smax ? `${fmt(advised.smax, 1)}% maximum` : "no maximum"}, ${oneIn(advised.smin)}`
+  $("issued_grade").textContent = flow.pwwf > 0 ? `${fmt(flow.pwwf, 2)} L/s` : "—";
+  $("issued_sub").textContent = flow.count
+    ? "Design flow. Pick a diameter from the table once you know the grade the ground can give."
     : "Tick the precincts that drain to this pipe.";
   $("chip_pdwf").textContent = `PDWF ${fmt(flow.pdwf, 2)} L/s`;
-  $("chip_pwwf").textContent = `PWWF ${fmt(flow.pwwf, 2)} L/s`;
+  $("chip_q").textContent = `Qdmp ${fmt(flow.qDmp, 2)} L/s`;
   $("chip_ep").textContent = `${fmt(flow.ep, 0)} EP · ${flow.count} precinct${flow.count === 1 ? "" : "s"}`;
-  const chip = $("chip_status");
-  chip.textContent = advised ? advised.status : "no pipe";
-  chip.className = `chip ${advised && advised.status === "OK" ? "ok" : "warn"}`;
 
   $("catchment").innerHTML = [
     ["Precincts ticked", String(flow.count)],
@@ -160,7 +156,7 @@ function render(job) {
 
   $("results").innerHTML = rows
     .map(
-      (row) => `<tr class="${advised && row.dn === advised.dn ? "picked" : ""}">
+      (row) => `<tr>
         <td>${row.dn}</td>
         <td class="num">${row.smin ? fmt(row.smin, 3) : "—"}</td>
         <td class="num">${oneIn(row.smin)}</td>
@@ -169,6 +165,7 @@ function render(job) {
         <td class="num">${row.ssc ? fmt(row.ssc, 3) : "—"}</td>
         <td class="num">${row.abs ? fmt(row.abs, 3) : "—"}</td>
         <td class="num">${row.smax ? fmt(row.smax, 2) : "—"}</td>
+        <td>${row.smaxWhy}</td>
         <td class="num">${row.qFull ? fmt(row.qFull, 1) : "—"}</td>
         <td>${row.status}</td>
       </tr>`
@@ -176,10 +173,10 @@ function render(job) {
     .join("");
 
   const fixed = $("fixed_note");
-  const hit = smallestDiameter(rows, job.grade, flow.pwwf);
+  const hits = diametersForGrade(rows, job.grade, flow.pwwf);
   const slime = flowAtGrade(job.dn, job.grade, p.kSss, p);
-  const sizeText = hit
-    ? `Smallest pipe this grade can serve: DN ${hit.dn}, minimum ${fmt(hit.smin, 2)}% (${hit.criterion}).`
+  const sizeText = hits.length
+    ? `Diameters that can be laid at ${fmt(job.grade, 2)}% and still carry the design flow: ${hits.map((row) => `DN ${row.dn}`).join(", ")}.`
     : `No diameter can be laid at ${fmt(job.grade, 2)}% and still carry this design flow.`;
   const flowText = slime.ok
     ? `On DN ${job.dn}, ${fmt(job.grade, 2)}% is the slime-control grade at a dry-weather peak of ${fmt(slime.pdwf, 2)} L/s.`

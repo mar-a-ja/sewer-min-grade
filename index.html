@@ -113,14 +113,13 @@
           <div class="sticky stack">
             <div class="card issued">
               <p class="jobline" id="job_line"></p>
-              <span>Use</span>
+              <span>Design flow</span>
               <strong id="issued_grade">—</strong>
               <p class="caption" id="issued_sub"></p>
               <div class="chips">
                 <span class="chip" id="chip_pdwf"></span>
-                <span class="chip" id="chip_pwwf"></span>
+                <span class="chip" id="chip_q"></span>
                 <span class="chip" id="chip_ep"></span>
-                <span class="chip" id="chip_status"></span>
               </div>
             </div>
             <div class="card">
@@ -132,7 +131,7 @@
 
         <div class="card" style="margin-top:1rem">
           <h2>Grade for each diameter</h2>
-          <p class="help">Lay the pipe between the minimum and the maximum. The highlighted row is the smallest diameter that carries the wet-weather flow without going steeper than you need, and whose maximum is still steeper than its minimum.</p>
+          <p class="help">Each diameter has its own allowable range. You choose the pipe from the grade the ground can give: it has to be steeper than the minimum and flatter than the maximum.</p>
           <table class="results">
             <thead>
               <tr>
@@ -144,6 +143,7 @@
                 <th class="num">Self-clean %</th>
                 <th class="num">Absolute %</th>
                 <th class="num">Max %</th>
+                <th>Why the maximum</th>
                 <th class="num">Full at min (L/s)</th>
                 <th>Check</th>
               </tr>
@@ -154,7 +154,7 @@
 
         <div class="card" style="margin-top:1rem">
           <h2>The grade is already fixed</h2>
-          <p class="help">Use this when the ground falls at a known slope. It names the smallest diameter that slope can serve, and the dry-weather flow at which that slope would be exactly the slime-control grade.</p>
+          <p class="help">Enter the grade the ground will actually fall at. The note lists every diameter that grade can serve. It does not pick one for you.</p>
           <div class="grid">
             <label>Grade you can build (%)
               <input id="grade_in" type="number" step="0.01" min="0" />
@@ -174,7 +174,7 @@
         <p>STD-SPE-G-011 Version 5, 8 October 2025, equations IW.5.5.3.1 to IW.5.5.3.4 and IW.5.5.4, flows in Section IW.3. <a href="https://www.iconwater.com.au/Developers-and-Renovators/Water-and-Sewerage-Service-Standards-and-Guidelines/New-Icon-Water-water-supply-and-sewerage-standards">Icon Water standards</a>.</p>
       </div>
     </main>
-    <script type="module" src="js/app.js?v=2"></script>
+    <script type="module" src="js/app.js?v=3"></script>
     <script src="js/theme.js?v=1"></script>
   </body>
 </html>

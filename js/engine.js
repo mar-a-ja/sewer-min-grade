@@ -193,7 +193,14 @@ export function gradeRow(dn, flow, houses, p) {
   const fullA = (Math.PI * D * D) / 4;
   const th3 = At > 0 && At < fullA ? solvePower(D, At, 0) : 0;
   const g3 = th3 ? geom(D, th3) : null;
-  const smax = g3 ? ((p.vMax * p.n) / g3.R ** (2 / 3)) ** 2 * 100 : At >= fullA ? null : null;
+  let smax = null;
+  let smaxWhy = "Needs a dry-weather flow";
+  if (pdwf > 0 && At >= fullA) {
+    smaxWhy = "Dry-weather peak is already faster than 3.0 m/s when this pipe is full";
+  } else if (g3) {
+    smax = ((p.vMax * p.n) / g3.R ** (2 / 3)) ** 2 * 100;
+    smaxWhy = "3.0 m/s at peak dry-weather flow";
+  }
   const full = smin > 0 ? qFull(D, smin, p.n) : 0;
   const yOverD = g1 ? g1.y / D : 0;
   let status = "enter a catchment";
@@ -204,7 +211,7 @@ export function gradeRow(dn, flow, houses, p) {
   else if (pwwf > full) status = "surcharged at the minimum grade";
   else status = "OK";
   return {
-    dn, D, sss, ssc, abs, smin, criterion, smax, qFull: full,
+    dn, D, sss, ssc, abs, smin, criterion, smax, smaxWhy, qFull: full,
     yMm: g1 ? g1.y * 1000 : null, yOverD, v: g1 && g1.A ? (flow.qDmp / 1000) / g1.A : null,
     pwwfRatio: full > 0 ? pwwf / full : null, status,
   };
@@ -228,14 +235,13 @@ export function flowAtGrade(dn, gradePct, k, p) {
   return { ok: true, qDmp, pdwf, yOverD: geom(D, th).y / D };
 }
 
-export function smallestDiameter(rows, availableGrade, pwwf) {
-  const hits = rows.filter((row) => {
+export function diametersForGrade(rows, availableGrade, pwwf) {
+  return rows.filter((row) => {
     if (!(availableGrade > 0) || !(row.smin > 0) || row.smin > availableGrade + 1e-9) return false;
     if (row.smax != null && row.smax < row.smin) return false;
     if (pwwf > 0 && row.qFull < pwwf) return false;
     return true;
   });
-  return hits.length ? hits[0] : null;
 }
 
 export function fmt(n, digits = 2) {
