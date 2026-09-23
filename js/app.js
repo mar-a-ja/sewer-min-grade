@@ -50,7 +50,7 @@ function readJob() {
     date: $("date").value,
     params: readParams(),
     precincts: readPrecincts(),
-    solve: $("solve").value,
+    solve: "grade",
     dn: Number($("dn").value),
     grade: num("grade_in"),
     houses: housesTouched ? num("houses") : null,
@@ -86,7 +86,6 @@ function writeJob(job) {
   $("i_hour").value = job.params.iHour;
   $("portion_wet").value = job.params.portionWet;
   $("tpf").value = job.params.tpf;
-  $("solve").value = job.solve || "grade";
   $("dn").value = String(job.dn || 225);
   $("grade_in").value = job.grade ?? 1;
   housesTouched = job.houses != null;
@@ -116,27 +115,6 @@ function oneIn(percent) {
   return `1 in ${fmt(100 / percent, 0)}`;
 }
 
-function drawSection(row) {
-  const svg = $("svg-pipe");
-  const cx = 180;
-  const cy = 150;
-  const r = 110;
-  const yd = row && row.yOverD > 0 ? Math.min(row.yOverD, 0.98) : 0.25;
-  const ySurf = cy + r - 2 * r * yd;
-  const half = Math.sqrt(Math.max(0, r * r - (ySurf - cy) ** 2));
-  const large = yd > 0.5 ? 1 : 0;
-  const water = yd
-    ? `<path d="M ${cx - half} ${ySurf} A ${r} ${r} 0 ${large} 1 ${cx + half} ${ySurf} Z" fill="#8fc4dd" stroke="#2e6f8f" />`
-    : "";
-  svg.innerHTML = `
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="#fffdf8" stroke="#1a3a52" stroke-width="3" />
-    ${water}
-    <line x1="${cx - r - 16}" y1="${ySurf}" x2="${cx + r + 16}" y2="${ySurf}" stroke="#b03a2e" stroke-dasharray="4 3" />
-    <text x="${cx}" y="36" text-anchor="middle" font-family="Georgia, serif" font-size="16" fill="#1a1916">DN ${row ? row.dn : ""}</text>
-    <text x="${cx}" y="292" text-anchor="middle" font-size="13" fill="#6a6560">water at the slime-control depth${row && row.yOverD ? `, y/D ${fmt(row.yOverD, 2)}` : ""}</text>
-  `;
-}
-
 function render(job) {
   const p = job.params;
   const flow = combine(job.precincts, p);
@@ -152,16 +130,18 @@ function render(job) {
     tr.querySelector("[data-out=pwwf]").textContent = fmt(row.pwwf, 2);
   });
 
-  const picked = rows.find((row) => row.dn === Number(job.dn)) || rows[1];
+  const advised = smallestDiameter(rows, 1e9, flow.pwwf);
   $("job_line").textContent = [job.job, job.designer, job.date].filter(Boolean).join(" · ") || "Untitled job";
-  $("issued_grade").textContent = picked && picked.smin ? `${fmt(picked.smin, 2)}%` : "—";
-  $("issued_sub").textContent = picked ? `${picked.criterion} · DN ${picked.dn} · ${oneIn(picked.smin)}` : "";
+  $("issued_grade").textContent = advised ? `DN ${advised.dn}` : "—";
+  $("issued_sub").textContent = advised
+    ? `${fmt(advised.smin, 2)}% minimum (${advised.criterion}), ${advised.smax ? `${fmt(advised.smax, 1)}% maximum` : "no maximum"}, ${oneIn(advised.smin)}`
+    : "Tick the precincts that drain to this pipe.";
   $("chip_pdwf").textContent = `PDWF ${fmt(flow.pdwf, 2)} L/s`;
   $("chip_pwwf").textContent = `PWWF ${fmt(flow.pwwf, 2)} L/s`;
   $("chip_ep").textContent = `${fmt(flow.ep, 0)} EP · ${flow.count} precinct${flow.count === 1 ? "" : "s"}`;
   const chip = $("chip_status");
-  chip.textContent = picked ? picked.status : "";
-  chip.className = `chip ${picked && picked.status === "OK" ? "ok" : picked && picked.status.startsWith("tick") ? "" : "warn"}`;
+  chip.textContent = advised ? advised.status : "no pipe";
+  chip.className = `chip ${advised && advised.status === "OK" ? "ok" : "warn"}`;
 
   $("catchment").innerHTML = [
     ["Precincts ticked", String(flow.count)],
@@ -180,7 +160,7 @@ function render(job) {
 
   $("results").innerHTML = rows
     .map(
-      (row) => `<tr class="${row.dn === picked.dn ? "picked" : ""}">
+      (row) => `<tr class="${advised && row.dn === advised.dn ? "picked" : ""}">
         <td>${row.dn}</td>
         <td class="num">${row.smin ? fmt(row.smin, 3) : "—"}</td>
         <td class="num">${oneIn(row.smin)}</td>
@@ -195,34 +175,16 @@ function render(job) {
     )
     .join("");
 
-  const answer = $("answer");
-  const answerNote = $("answer_note");
-  if (job.solve === "flow") {
-    const slime = flowAtGrade(job.dn, job.grade, p.kSss, p);
-    const clean = flowAtGrade(job.dn, job.grade, p.kSc, p);
-    if (!slime.ok) {
-      answer.textContent = slime.reason;
-      answerNote.textContent = `DN ${job.dn} at ${fmt(job.grade, 3)}%`;
-    } else {
-      answer.textContent = `${fmt(slime.qDmp, 2)} L/s`;
-      answerNote.textContent = `Qdmp at which ${fmt(job.grade, 3)}% is the slime-control grade. PDWF ${fmt(slime.pdwf, 2)} L/s. Self-cleansing Qdmp at the same grade: ${clean.ok ? `${fmt(clean.qDmp, 2)} L/s` : clean.reason}.`;
-    }
-  } else if (job.solve === "diameter") {
-    const hit = smallestDiameter(rows, job.grade, flow.pwwf);
-    if (!hit) {
-      answer.textContent = "none";
-      answerNote.textContent = `No diameter has a minimum grade at or flatter than ${fmt(job.grade, 3)}% and still carries the design flow.`;
-    } else {
-      answer.textContent = `DN ${hit.dn}`;
-      answerNote.textContent = `Minimum grade ${fmt(hit.smin, 3)}% (${hit.criterion}). Full-pipe capacity at that grade ${fmt(hit.qFull, 1)} L/s.`;
-    }
-  } else {
-    answer.textContent = picked && picked.smin ? `${fmt(picked.smin, 2)}%` : "—";
-    answerNote.textContent = picked
-      ? `DN ${picked.dn}: ${picked.criterion}. Maximum grade ${picked.smax ? `${fmt(picked.smax, 2)}%` : "—"}. ${picked.status}`
-      : "";
-  }
-  drawSection(picked);
+  const fixed = $("fixed_note");
+  const hit = smallestDiameter(rows, job.grade, flow.pwwf);
+  const slime = flowAtGrade(job.dn, job.grade, p.kSss, p);
+  const sizeText = hit
+    ? `Smallest pipe this grade can serve: DN ${hit.dn}, minimum ${fmt(hit.smin, 2)}% (${hit.criterion}).`
+    : `No diameter can be laid at ${fmt(job.grade, 2)}% and still carry this design flow.`;
+  const flowText = slime.ok
+    ? `On DN ${job.dn}, ${fmt(job.grade, 2)}% is the slime-control grade at a dry-weather peak of ${fmt(slime.pdwf, 2)} L/s.`
+    : `On DN ${job.dn}, ${slime.reason}.`;
+  fixed.textContent = `${sizeText} ${flowText}`;
   try {
     localStorage.setItem(STORE, JSON.stringify(job));
   } catch {
@@ -316,14 +278,6 @@ function boot() {
     } catch (err) {
       setStatus(`Could not load that file: ${err.message || err}`);
     }
-  });
-  document.querySelectorAll("nav button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll("nav button").forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll("main > section").forEach((s) => s.classList.remove("active"));
-      btn.classList.add("active");
-      $(btn.dataset.tab).classList.add("active");
-    });
   });
   recalc();
 }
