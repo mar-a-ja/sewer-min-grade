@@ -315,8 +315,91 @@ figcaption { font-size: 0.82rem; color: var(--muted); margin-top: 0.35rem; }
 .precincts td.num, .results td.num, .results th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .row-actions { display: flex; gap: 0.4rem; margin-top: 0.6rem; }
 tr.picked td { background: var(--input-calc); }
+/* Same crumb and tip jar as the other chice tools. */
+.top .crumb {
+  margin: 0 0 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.crumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.crumb a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+.crumb a:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.75rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.2rem 1.75rem;
+}
+footer a:not(.donate-button) {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+footer a:not(.donate-button):hover { color: var(--ink); }
+footer a:not(.donate-button):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.donate-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 6px 12px 6px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #000;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  text-decoration: none;
+  white-space: nowrap;
+}
+footer a.donate-button {
+  color: #fff;
+  font-weight: 650;
+  text-decoration: none;
+}
+.donate-button:hover,
+footer a.donate-button:hover {
+  background: #1a1a1a;
+  color: #fff;
+}
+.donate-button:focus-visible,
+footer a.donate-button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.donate-button-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+html[data-theme="dark"] .donate-button {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
 @media print {
-  .top-actions, nav, .row-actions, #reset, #save_job, #load_job, .theme-toggle { display: none !important; }
+  .top-actions, nav, .row-actions, #reset, #save_job, #load_job, .theme-toggle, footer, .crumb { display: none !important; }
   .top { position: static; border-bottom: 0; }
   main > section { display: none !important; }
   main > section.active { display: block !important; }
