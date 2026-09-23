@@ -155,12 +155,14 @@
 
         <div class="card" style="margin-top:1rem">
           <h2>Reverse: the grade is known</h2>
-          <p class="help">Same equations, run the other way. Enter the grade the ground falls at. Every diameter whose minimum is flatter than that grade, and whose maximum is steeper, is listed. Nothing is chosen for you. For one diameter, the note also gives the dry-weather flow at which that grade would be exactly slime control, and exactly self-cleansing.</p>
+          <p class="help">The table above starts from the catchment and tells you the grade each diameter needs. This box starts from the grade you already have, usually the fall of the ground between two pits, and runs Icon’s equations the other way. It answers two questions.</p>
+          <p class="help">First, which diameters can actually be laid at that grade. A diameter is listed only when your grade is steeper than its minimum, flatter than its maximum, and the pipe can still carry the wet-weather design flow. The list is every pipe that passes. You still choose among them.</p>
+          <p class="help">Second, how much dry-weather flow that grade is “meant” for on one diameter. Pick the diameter. The note gives the peak dry-weather flow at which your grade is exactly the slime-control grade (0.0338 divided by the hydraulic radius), and the flow at which it is exactly the self-cleansing grade (0.0135 divided by the hydraulic radius). If your catchment’s peak is larger than the slime-control flow, this grade is too flat for slime control on that diameter, even if the pipe still passes the minimum-grade check for a different reason.</p>
           <div class="grid">
-            <label>Grade you can build (%)
+            <label title="The grade the pipe will actually be built at, as a percent. 1.00 means 1 in 100.">Grade the pipe will be built at (%)
               <input id="grade_in" type="number" step="0.01" min="0" />
             </label>
-            <label>Check slime-control flow on
+            <label title="Used only for the second result: the dry-weather flow this grade matches on one diameter.">Diameter for the flow check
               <select id="dn"></select>
             </label>
           </div>
@@ -176,7 +178,7 @@
         <p>STD-SPE-G-011 Version 5, 8 October 2025, equations IW.5.5.3.1 to IW.5.5.3.4 and IW.5.5.4, flows in Section IW.3. <a href="https://www.iconwater.com.au/Developers-and-Renovators/Water-and-Sewerage-Service-Standards-and-Guidelines/New-Icon-Water-water-supply-and-sewerage-standards">Icon Water standards</a>.</p>
       </div>
     </main>
-    <script type="module" src="js/app.js?v=4"></script>
+    <script type="module" src="js/app.js?v=5"></script>
     <script src="js/theme.js?v=1"></script>
   </body>
 </html>

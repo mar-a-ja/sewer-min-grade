@@ -178,14 +178,14 @@ function render(job) {
   const slime = flowAtGrade(job.dn, job.grade, p.kSss, p);
   const clean = flowAtGrade(job.dn, job.grade, p.kSc, p);
   const sizeText = hits.length
-    ? `At ${fmt(job.grade, 2)}% (${oneIn(job.grade)}), these diameters can carry the design flow: ${hits.map((row) => `DN ${row.dn}`).join(", ")}.`
-    : `No diameter can be laid at ${fmt(job.grade, 2)}% and still carry this design flow.`;
+    ? `Pipes that accept ${fmt(job.grade, 2)}% (${oneIn(job.grade)}): ${hits.map((row) => `DN ${row.dn}`).join(", ")}.`
+    : `No diameter accepts ${fmt(job.grade, 2)}%. It is either flatter than that pipe’s minimum, steeper than its maximum, or the pipe cannot carry the design flow.`;
   const slimeText = slime.ok
-    ? `On DN ${job.dn}, this grade is slime control (IW.5.5.3.2) at PDWF ${fmt(slime.pdwf, 2)} L/s (Qdmp ${fmt(slime.qDmp, 2)} L/s).`
-    : `On DN ${job.dn}, slime control: ${slime.reason}.`;
+    ? `On DN ${job.dn}, ${fmt(job.grade, 2)}% is exactly slime control when peak dry weather is ${fmt(slime.pdwf, 2)} L/s. Your catchment peak is ${fmt(flow.pdwf, 2)} L/s.`
+    : `On DN ${job.dn}, slime control cannot be read at this grade: ${slime.reason}.`;
   const cleanText = clean.ok
-    ? `It is self-cleansing (IW.5.5.3.1) at PDWF ${fmt(clean.pdwf, 2)} L/s (Qdmp ${fmt(clean.qDmp, 2)} L/s).`
-    : `Self-cleansing: ${clean.reason}.`;
+    ? `The same grade is exactly self-cleansing when peak dry weather is ${fmt(clean.pdwf, 2)} L/s.`
+    : `Self-cleansing cannot be read at this grade: ${clean.reason}.`;
   fixed.textContent = `${sizeText} ${slimeText} ${cleanText}`;
   try {
     localStorage.setItem(STORE, JSON.stringify(job));
