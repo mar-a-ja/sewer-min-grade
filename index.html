@@ -68,24 +68,24 @@
         <div class="layout">
           <div class="card">
             <h2>Catchment</h2>
-            <p class="help">Tick every precinct upstream of the pipe. The design flow is calculated on those precincts together, not by adding their peaks. Yellow is this job. Lilac is a coefficient from the supplement.</p>
+            <p class="help">Tick every precinct upstream of the pipe. The design flow is calculated on those precincts together, not by adding their peaks. Yellow is this job. Lilac is a value taken from Icon Water STD-SPE-G-011 Version 5 (8 October 2025), the supplement to WSA 02-2014-3.3. Hover a lilac label for the clause.</p>
             <div class="grid">
               <label class="span2">Job <input id="job" /></label>
               <label>Designer <input id="designer" /></label>
               <label>Date <input id="date" type="date" /></label>
-              <label>Pipe material
+              <label title="Table IW.3. VC, ductile iron and steel use n = 0.012. PVC, polyethylene and GRP use n = 0.011. For DN600 and larger, Icon asks you to confirm the roughness.">Pipe material
                 <select id="material" class="leave"></select>
               </label>
-              <label>1-hour rain, 39.35% AEP (mm/h)
+              <label title="Equation 3.4.4.2. One-hour rainfall depth at 39.35% annual exceedance probability, from the Bureau of Meteorology Design Rainfall Data System for the site. 21.4 mm/h is the original spreadsheet figure, not a number printed in STD-SPE-G-011.">1-hour rain, 39.35% AEP (mm/h)
                 <input id="i_hour" class="leave" type="number" step="0.1" />
               </label>
-              <label>Portion of pipes below groundwater
+              <label title="Equation 3.4.3.1. Groundwater = 0.01875 L/s per hectare times this portion. Icon’s default is 0.75, meaning three quarters of the pipes sit below the groundwater table.">Portion of pipes below groundwater
                 <input id="portion_wet" class="leave" type="number" step="0.05" min="0" max="1" />
               </label>
-              <label>Pumped inflow TPF (L/s)
+              <label title="Equations 3.4.2.4 and 3.4.2.5, and IW.5.5.3.3. Pump rate discharging into this gravity pipe. Leave 0 if nothing is pumped in. Qdmp = 0.75 × (PDWF + 2/3 × TPF).">Pumped inflow TPF (L/s)
                 <input id="tpf" class="leave" type="number" step="0.1" min="0" />
               </label>
-              <label>DN150 houses, if not the dwelling total
+              <label class="span2" title="Table IW.4 applies only to a DN150 straight sewer. Count the houses that will ultimately drain to that DN150 line, not the equivalent population. The bands are 1 house 1.25%, 2 houses 1.20%, 7 houses 1.10%, 12 houses 1.00%, 18 houses 0.90%, 28 houses 0.80%, and 35 houses or more 0.70%. The box starts as the dwelling total of the ticked precincts. Change it when the DN150 reach serves fewer houses than the whole catchment, or when future houses are not in the precinct list yet.">DN150 houses (Table IW.4)
                 <input id="houses" type="number" min="0" step="1" />
               </label>
             </div>
@@ -131,7 +131,7 @@
 
         <div class="card" style="margin-top:1rem">
           <h2>Grade for each diameter</h2>
-          <p class="help">Each diameter has its own allowable range. You choose the pipe from the grade the ground can give: it has to be steeper than the minimum and flatter than the maximum.</p>
+          <p class="help">This is the forward solve: flow known, grade wanted, for every diameter. Lay the pipe steeper than the minimum and flatter than the maximum. Minimum slime control is equation IW.5.5.3.2, 0.0338 / Rp. Minimum self-cleansing is IW.5.5.3.1, 0.0135 / Rp. Both use the hydraulic radius at Qdmp (IW.5.5.3.3). Above DN150 the absolute floor is IW.5.5.3.4, 80 / internal diameter in millimetres. DN150 uses Table IW.4 instead of those shear equations. The maximum is IW.5.5.4, the grade at which peak dry-weather flow runs at 3.0 m/s.</p>
           <table class="results">
             <thead>
               <tr>
@@ -143,6 +143,7 @@
                 <th class="num">Self-clean %</th>
                 <th class="num">Absolute %</th>
                 <th class="num">Max %</th>
+                <th class="num">Max</th>
                 <th>Why the maximum</th>
                 <th class="num">Full at min (L/s)</th>
                 <th>Check</th>
@@ -153,8 +154,8 @@
         </div>
 
         <div class="card" style="margin-top:1rem">
-          <h2>The grade is already fixed</h2>
-          <p class="help">Enter the grade the ground will actually fall at. The note lists every diameter that grade can serve. It does not pick one for you.</p>
+          <h2>Reverse: the grade is known</h2>
+          <p class="help">Same equations, run the other way. Enter the grade the ground falls at. Every diameter whose minimum is flatter than that grade, and whose maximum is steeper, is listed. Nothing is chosen for you. For one diameter, the note also gives the dry-weather flow at which that grade would be exactly slime control, and exactly self-cleansing.</p>
           <div class="grid">
             <label>Grade you can build (%)
               <input id="grade_in" type="number" step="0.01" min="0" />
@@ -169,12 +170,13 @@
 
       <div class="card prose" style="margin-top:1rem">
         <h2>What the numbers are</h2>
-        <p>Equivalent population per dwelling follows density: 3.5 below 25 dwellings per hectare, 2.5 from 25 to 80, and 2.0 above 80. Average dry-weather flow is 180 L per EP per day. Peak dry-weather flow is 5.83 times that average, divided by total EP to the power 0.1. Groundwater is 0.01875 L/s per hectare times the wet portion. Rainfall inflow uses a leakage factor of 1.2 and the Bureau of Meteorology one-hour intensity at 39.35% annual exceedance probability. 21.4 mm/h is only the original spreadsheet’s figure.</p>
-        <p>The pipe must carry the wet-weather total, peak dry weather plus groundwater plus rainfall, without surcharge. The minimum grade uses a smaller flow, Qdmp: three quarters of peak dry weather, plus two thirds of any pumped inflow. Self-cleansing is 0.0135 divided by the hydraulic radius at that flow. Slime control is 0.0338 divided by the same radius. Above DN150 the grade also cannot be flatter than 80 divided by the internal diameter in millimetres. DN150 uses the house table instead, from 1.25% for one house to 0.70% at 35 houses. The maximum grade is 3 m/s at peak dry weather.</p>
+        <p>Every coefficient below is from Icon Water STD-SPE-G-011 Version 5, issued 8 October 2025. That document is Icon’s supplement to WSA 02-2014-3.3, the Gravity Sewerage Code of Australia. Where Icon rewrites a chapter, this page follows the supplement, not the base code.</p>
+        <p>Equivalent population per dwelling is Table IW.1: 3.5 below 25 dwellings per hectare of net site area, 2.5 from 25 to 80, and 2.0 above 80. Average dry-weather flow is equation 3.4.2.2, 180 L per EP per day. Peak dry-weather flow is equation 3.4.2.3, 5.83 times that average, divided by total EP to the power 0.1. Groundwater is equation 3.4.3.1. Rainfall inflow is equation 3.4.4.1, with C = 1.2 and the intensity from equation 3.4.4.2. The 21.4 mm/h starting value is the original spreadsheet’s figure. Replace it with the Bureau of Meteorology one-hour depth at 39.35% annual exceedance probability for the site.</p>
+        <p>The pipe must carry the wet-weather total without surcharge. Equation 3.4.1.1 adds peak dry weather, groundwater and rainfall inflow. The minimum grade uses a smaller flow, Qdmp, from IW.5.5.3.3: three quarters of peak dry weather, plus two thirds of any pumped inflow. Self-cleansing, IW.5.5.3.1, is 0.0135 divided by the hydraulic radius at that flow. Slime control, IW.5.5.3.2, is 0.0338 divided by the same radius. Above DN150, IW.5.5.3.4 also sets a floor of 80 divided by the internal diameter in millimetres. A DN150 straight sewer does not use those shear equations. Table IW.4 sets its minimum from the number of houses that will ultimately drain to that line: 1 house 1.25%, 2 houses 1.20%, 7 houses 1.10%, 12 houses 1.00%, 18 houses 0.90%, 28 houses 0.80%, and 35 houses or more 0.70%. The house box starts as the dwellings in the ticked precincts. Change it when that DN150 reach serves a different number of houses, including houses not built yet. The maximum grade, IW.5.5.4, is 3 m/s at peak dry weather.</p>
         <p>STD-SPE-G-011 Version 5, 8 October 2025, equations IW.5.5.3.1 to IW.5.5.3.4 and IW.5.5.4, flows in Section IW.3. <a href="https://www.iconwater.com.au/Developers-and-Renovators/Water-and-Sewerage-Service-Standards-and-Guidelines/New-Icon-Water-water-supply-and-sewerage-standards">Icon Water standards</a>.</p>
       </div>
     </main>
-    <script type="module" src="js/app.js?v=3"></script>
+    <script type="module" src="js/app.js?v=4"></script>
     <script src="js/theme.js?v=1"></script>
   </body>
 </html>

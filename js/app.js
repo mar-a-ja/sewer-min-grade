@@ -165,6 +165,7 @@ function render(job) {
         <td class="num">${row.ssc ? fmt(row.ssc, 3) : "—"}</td>
         <td class="num">${row.abs ? fmt(row.abs, 3) : "—"}</td>
         <td class="num">${row.smax ? fmt(row.smax, 2) : "—"}</td>
+        <td class="num">${oneIn(row.smax)}</td>
         <td>${row.smaxWhy}</td>
         <td class="num">${row.qFull ? fmt(row.qFull, 1) : "—"}</td>
         <td>${row.status}</td>
@@ -175,13 +176,17 @@ function render(job) {
   const fixed = $("fixed_note");
   const hits = diametersForGrade(rows, job.grade, flow.pwwf);
   const slime = flowAtGrade(job.dn, job.grade, p.kSss, p);
+  const clean = flowAtGrade(job.dn, job.grade, p.kSc, p);
   const sizeText = hits.length
-    ? `Diameters that can be laid at ${fmt(job.grade, 2)}% and still carry the design flow: ${hits.map((row) => `DN ${row.dn}`).join(", ")}.`
+    ? `At ${fmt(job.grade, 2)}% (${oneIn(job.grade)}), these diameters can carry the design flow: ${hits.map((row) => `DN ${row.dn}`).join(", ")}.`
     : `No diameter can be laid at ${fmt(job.grade, 2)}% and still carry this design flow.`;
-  const flowText = slime.ok
-    ? `On DN ${job.dn}, ${fmt(job.grade, 2)}% is the slime-control grade at a dry-weather peak of ${fmt(slime.pdwf, 2)} L/s.`
-    : `On DN ${job.dn}, ${slime.reason}.`;
-  fixed.textContent = `${sizeText} ${flowText}`;
+  const slimeText = slime.ok
+    ? `On DN ${job.dn}, this grade is slime control (IW.5.5.3.2) at PDWF ${fmt(slime.pdwf, 2)} L/s (Qdmp ${fmt(slime.qDmp, 2)} L/s).`
+    : `On DN ${job.dn}, slime control: ${slime.reason}.`;
+  const cleanText = clean.ok
+    ? `It is self-cleansing (IW.5.5.3.1) at PDWF ${fmt(clean.pdwf, 2)} L/s (Qdmp ${fmt(clean.qDmp, 2)} L/s).`
+    : `Self-cleansing: ${clean.reason}.`;
+  fixed.textContent = `${sizeText} ${slimeText} ${cleanText}`;
   try {
     localStorage.setItem(STORE, JSON.stringify(job));
   } catch {
