@@ -210,15 +210,6 @@ export function gradeRow(dn, flow, houses, p) {
     smaxWhy = "3.0 m/s at peak dry-weather flow";
   }
   const full = smin > 0 ? qFull(D, smin, p.n) : 0;
-  const fullArea = (Math.PI * D * D) / 4;
-  const qVelocityCap = p.vMax * fullArea * 1000;
-  let qFullMax = null;
-  if (smax != null && smax > 0 && smin > 0) {
-    const atMaxGrade = qFull(D, smax, p.n);
-    const compliant = Math.min(atMaxGrade, qVelocityCap);
-    const sCompliant = compliant + 1e-6 < atMaxGrade ? gradeForFullFlow(D, compliant, p.n) : smax;
-    if (sCompliant != null && sCompliant + 1e-9 >= smin) qFullMax = compliant;
-  }
   const yOverD = g1 ? g1.y / D : 0;
   const sCarry = pwwf > full && full > 0 ? gradeForFullFlow(D, pwwf, p.n) : null;
   let status = "enter a catchment";
@@ -227,12 +218,12 @@ export function gradeRow(dn, flow, houses, p) {
   else if (smax != null && smax < smin) status = "maximum grade is flatter than the minimum";
   else if (!(pwwf > 0)) status = "no wet-weather flow";
   else if (sCarry != null && smax != null && sCarry <= smax) {
-    status = `New minimum ${fmt(sCarry, 3)}% (1 in ${fmt(100 / sCarry, 0)}) to carry the design flow. That grade is steeper than the minimum and still below the maximum.`;
+    status = `New minimum ${fmt(sCarry, 3)}% to carry the design flow. That grade is steeper than the minimum and still below the maximum.`;
   } else if (sCarry != null && smax != null) status = "The maximum grade cannot carry the design flow";
   else if (sCarry != null) status = "No grade under 3.0 m/s carries the design flow";
   else status = "OK";
   return {
-    dn, D, sss, ssc, abs, smin, criterion, smax, smaxWhy, qFull: full, qFullMax, sCarry,
+    dn, D, sss, ssc, abs, smin, criterion, smax, smaxWhy, qFull: full, sCarry,
     yMm: g1 ? g1.y * 1000 : null, yOverD, v: g1 && g1.A ? (flow.qDmp / 1000) / g1.A : null,
     pwwfRatio: full > 0 ? pwwf / full : null, status,
   };
