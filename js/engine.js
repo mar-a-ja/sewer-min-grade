@@ -210,6 +210,15 @@ export function gradeRow(dn, flow, houses, p) {
     smaxWhy = "3.0 m/s at peak dry-weather flow";
   }
   const full = smin > 0 ? qFull(D, smin, p.n) : 0;
+  const fullArea = (Math.PI * D * D) / 4;
+  const qVelocityCap = p.vMax * fullArea * 1000;
+  let qFullMax = null;
+  if (smax != null && smax > 0 && smin > 0) {
+    const atMaxGrade = qFull(D, smax, p.n);
+    const compliant = Math.min(atMaxGrade, qVelocityCap);
+    const sCompliant = compliant + 1e-6 < atMaxGrade ? gradeForFullFlow(D, compliant, p.n) : smax;
+    if (sCompliant != null && sCompliant + 1e-9 >= smin) qFullMax = compliant;
+  }
   const yOverD = g1 ? g1.y / D : 0;
   const sCarry = pwwf > full && full > 0 ? gradeForFullFlow(D, pwwf, p.n) : null;
   let status = "enter a catchment";
@@ -223,7 +232,7 @@ export function gradeRow(dn, flow, houses, p) {
   else if (sCarry != null) status = "No grade under 3.0 m/s carries the design flow";
   else status = "OK";
   return {
-    dn, D, sss, ssc, abs, smin, criterion, smax, smaxWhy, qFull: full, sCarry,
+    dn, D, sss, ssc, abs, smin, criterion, smax, smaxWhy, qFull: full, qFullMax, sCarry,
     yMm: g1 ? g1.y * 1000 : null, yOverD, v: g1 && g1.A ? (flow.qDmp / 1000) / g1.A : null,
     pwwfRatio: full > 0 ? pwwf / full : null, status,
   };

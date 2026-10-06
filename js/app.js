@@ -6,7 +6,7 @@ import {
   flowAtGrade,
   fmt,
   grades,
-} from "./engine.js?v=2";
+} from "./engine.js?v=3";
 
 const STORE = "icon-sewer-job";
 const $ = (id) => document.getElementById(id);
@@ -167,6 +167,7 @@ function render(job) {
         <td class="num">${row.abs ? fmt(row.abs, 3) : "—"}</td>
         <td class="num">${row.smax ? fmt(row.smax, 2) : "—"}</td>
         <td class="num">${oneIn(row.smax)}</td>
+        <td class="num">${row.qFullMax ? fmt(row.qFullMax, 1) : "—"}</td>
         <td>${row.smaxWhy}</td>
         <td>${row.status}</td>
       </tr>`
