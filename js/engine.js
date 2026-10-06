@@ -170,6 +170,14 @@ function qFull(D, sPercent, n) {
   return (1 / n) * area * R ** (2 / 3) * Math.sqrt(sPercent / 100) * 1000;
 }
 
+/** Grade, in percent, at which a full pipe carries qLs. Steeper grades carry more. */
+function gradeForFullFlow(D, qLs, n) {
+  if (!(qLs > 0) || !(D > 0) || !(n > 0)) return null;
+  const area = (Math.PI * D * D) / 4;
+  const R = D / 4;
+  return 100 * ((qLs / 1000) * n / (area * R ** (2 / 3))) ** 2;
+}
+
 export function gradeRow(dn, flow, houses, p) {
   const D = dn / 1000;
   const q = flow.qDmp / 1000;
@@ -203,15 +211,19 @@ export function gradeRow(dn, flow, houses, p) {
   }
   const full = smin > 0 ? qFull(D, smin, p.n) : 0;
   const yOverD = g1 ? g1.y / D : 0;
+  const sCarry = pwwf > full && full > 0 ? gradeForFullFlow(D, pwwf, p.n) : null;
   let status = "enter a catchment";
   if (flow.count === 0 || !(pdwf > 0)) status = "tick the precincts upstream";
   else if (yOverD > 0.95) status = "pipe too small for this dry-weather flow";
   else if (smax != null && smax < smin) status = "maximum grade is flatter than the minimum";
   else if (!(pwwf > 0)) status = "no wet-weather flow";
-  else if (pwwf > full) status = "surcharged at the minimum grade";
+  else if (sCarry != null && smax != null && sCarry <= smax) {
+    status = `New minimum ${fmt(sCarry, 3)}% (1 in ${fmt(100 / sCarry, 0)}) to carry the design flow. That grade is steeper than the minimum and still below the maximum.`;
+  } else if (sCarry != null && smax != null) status = "The maximum grade cannot carry the design flow";
+  else if (sCarry != null) status = "No grade under 3.0 m/s carries the design flow";
   else status = "OK";
   return {
-    dn, D, sss, ssc, abs, smin, criterion, smax, smaxWhy, qFull: full,
+    dn, D, sss, ssc, abs, smin, criterion, smax, smaxWhy, qFull: full, sCarry,
     yMm: g1 ? g1.y * 1000 : null, yOverD, v: g1 && g1.A ? (flow.qDmp / 1000) / g1.A : null,
     pwwfRatio: full > 0 ? pwwf / full : null, status,
   };
@@ -235,11 +247,12 @@ export function flowAtGrade(dn, gradePct, k, p) {
   return { ok: true, qDmp, pdwf, yOverD: geom(D, th).y / D };
 }
 
-export function diametersForGrade(rows, availableGrade, pwwf) {
+export function diametersForGrade(rows, availableGrade, pwwf, n) {
   return rows.filter((row) => {
     if (!(availableGrade > 0) || !(row.smin > 0) || row.smin > availableGrade + 1e-9) return false;
-    if (row.smax != null && row.smax < row.smin) return false;
-    if (pwwf > 0 && row.qFull < pwwf) return false;
+    if (row.smax == null || row.smax < row.smin) return false;
+    if (availableGrade > row.smax + 1e-9) return false;
+    if (pwwf > 0 && qFull(row.D, availableGrade, n) + 1e-4 < pwwf) return false;
     return true;
   });
 }

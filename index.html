@@ -132,12 +132,14 @@
         <div class="card" style="margin-top:1rem">
           <h2>Grade for each diameter</h2>
           <p class="help">This is the forward solve: flow known, grade wanted, for every diameter. Lay the pipe steeper than the minimum and flatter than the maximum. Minimum slime control is equation IW.5.5.3.2, 0.0338 / Rp. Minimum self-cleansing is IW.5.5.3.1, 0.0135 / Rp. Both use the hydraulic radius at Qdmp (IW.5.5.3.3). Above DN150 the absolute floor is IW.5.5.3.4, 80 / internal diameter in millimetres. DN150 uses Table IW.4 instead of those shear equations. The maximum is IW.5.5.4, the grade at which peak dry-weather flow runs at 3.0 m/s.</p>
+          <p class="help">Full at min is the flow a full pipe carries at that minimum grade. Check is OK when the design flow is within it. A steeper grade carries more, so when the minimum is too flat and the maximum still has room, Check states the new minimum that just carries the design flow.</p>
           <table class="results">
             <thead>
               <tr>
                 <th>DN</th>
                 <th class="num">Min %</th>
                 <th class="num">Min</th>
+                <th class="num">Full at min (L/s)</th>
                 <th>Why the minimum</th>
                 <th class="num">Slime %</th>
                 <th class="num">Self-clean %</th>
@@ -145,7 +147,6 @@
                 <th class="num">Max %</th>
                 <th class="num">Max</th>
                 <th>Why the maximum</th>
-                <th class="num">Full at min (L/s)</th>
                 <th>Check</th>
               </tr>
             </thead>
@@ -189,7 +190,7 @@
         Support this project
       </a>
     </footer>
-    <script type="module" src="js/app.js?v=5"></script>
+    <script type="module" src="js/app.js?v=6"></script>
     <script src="js/theme.js?v=1"></script>
   </body>
 </html>

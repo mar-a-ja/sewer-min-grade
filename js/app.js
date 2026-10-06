@@ -6,7 +6,7 @@ import {
   flowAtGrade,
   fmt,
   grades,
-} from "./engine.js";
+} from "./engine.js?v=2";
 
 const STORE = "icon-sewer-job";
 const $ = (id) => document.getElementById(id);
@@ -160,6 +160,7 @@ function render(job) {
         <td>${row.dn}</td>
         <td class="num">${row.smin ? fmt(row.smin, 3) : "—"}</td>
         <td class="num">${oneIn(row.smin)}</td>
+        <td class="num">${row.qFull ? fmt(row.qFull, 1) : "—"}</td>
         <td>${row.criterion}</td>
         <td class="num">${row.sss ? fmt(row.sss, 3) : "—"}</td>
         <td class="num">${row.ssc ? fmt(row.ssc, 3) : "—"}</td>
@@ -167,14 +168,13 @@ function render(job) {
         <td class="num">${row.smax ? fmt(row.smax, 2) : "—"}</td>
         <td class="num">${oneIn(row.smax)}</td>
         <td>${row.smaxWhy}</td>
-        <td class="num">${row.qFull ? fmt(row.qFull, 1) : "—"}</td>
         <td>${row.status}</td>
       </tr>`
     )
     .join("");
 
   const fixed = $("fixed_note");
-  const hits = diametersForGrade(rows, job.grade, flow.pwwf);
+  const hits = diametersForGrade(rows, job.grade, flow.pwwf, p.n);
   const slime = flowAtGrade(job.dn, job.grade, p.kSss, p);
   const clean = flowAtGrade(job.dn, job.grade, p.kSc, p);
   const sizeText = hits.length
